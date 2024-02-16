@@ -10,7 +10,12 @@ def max_cpu(A, B):
      np.array
          element-wise maximum between A and B
      """
-    raise NotImplementedError("To be implemented")
+    C = np.zeros((1000, 1000))
+    for i in range(A.shape[0]):
+        for j in range(A.shape[1]):
+            C[i, j] = max(A[i, j], B[i, j])
+
+    return C
 
 
 @njit(parallel=True)
@@ -21,7 +26,11 @@ def max_numba(A, B):
      np.array
          element-wise maximum between A and B
      """
-    raise NotImplementedError("To be implemented")
+    C = np.zeros((1000, 1000))
+    for i in prange(A.shape[0]):
+        for j in prange(A.shape[1]):
+            C[i, j] = max(A[i, j], B[i, j])
+    return C
 
 
 def max_gpu(A, B):
@@ -31,12 +40,20 @@ def max_gpu(A, B):
      np.array
          element-wise maximum between A and B
      """
-    raise NotImplementedError("To be implemented")
+    threadsperblock = 1000
+    blockspergrid = 1000
+    C = np.zeros((1000, 1000))
+    max_kernel[blockspergrid, threadsperblock](A, B, C)
+    return C
 
 
 @cuda.jit
 def max_kernel(A, B, C):
-    raise NotImplementedError("To be implemented")
+    # Thread id in a 1D block
+    i = cuda.threadIdx.x
+    # Block id in a 1D grid
+    j = cuda.blockIdx.x
+    C[i, j] = max(A[i, j], B[i, j])
 
 
 def verify_solution():
@@ -77,6 +94,12 @@ def max_comparison():
     print('[*] CUDA:', timer(max_gpu))
 
 
+
 if __name__ == '__main__':
     verify_solution()
     max_comparison()
+
+A = np.random.randint(0, 256, (1000, 1000))
+B = np.random.randint(0, 256, (1000, 1000))
+C = max_cpu(A, B)
+print(C)
