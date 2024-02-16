@@ -84,8 +84,6 @@ def create_batches(data, labels, batch_size):
          list of tuples of (data batch of batch_size, labels batch of batch_size)
     """
 
-    split_data = [(data[i:i+batch_size], labels[i:i+batch_size]) for i in range(0, len(data), batch_size)]
-
     return [(data[i:i+batch_size], labels[i:i+batch_size]) for i in range(0, len(data), batch_size)]
 
 

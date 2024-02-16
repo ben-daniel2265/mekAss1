@@ -4,21 +4,61 @@ import timeit
 
 
 def matmul_transpose_trivial(X):
-    raise NotImplementedError("To be implemented")
+    C = np.zeros((X.shape[0], X.shape[0]))
+    for i in range(X.shape[0]):
+        for j in range(X.shape[0]):
+            sum = 0
+            for k in range(X.shape[1]):
+                sum += (X[i][k] * X[j][k])
+
+            C[i][j] = sum
+
+    return C
+
 
 
 @njit(parallel=True)
 def matmul_transpose_numba(X):
-    raise NotImplementedError("To be implemented")
+    C = np.zeros((X.shape[0], X.shape[0]))
+    for i in prange(X.shape[0]):
+        for j in prange(X.shape[0]):
+            sum = 0
+            for k in prange(X.shape[1]):
+                sum += (X[i][k] * X[j][k])
 
+            C[i][j] = sum
+
+    return C
 
 def matmul_transpose_gpu(X):
-    raise NotImplementedError("To be implemented")
+    threadsperblock = 1024
+    blockspergrid = 1
 
+    C = np.zeros((X.shape[0], X.shape[0]))
+    matmul_kernel[blockspergrid, threadsperblock](X, C)
+    return C
 
 @cuda.jit
 def matmul_kernel(A, C):
-    raise NotImplementedError("To be implemented")
+    # Thread id in a 1D block
+    i = cuda.threadIdx.x
+    # Block id in a 1D grid
+    j = cuda.blockIdx.x
+
+    size = ((A.shape[0]) ** 2 + 1023) // 1024
+
+    current = i * size
+
+    for k in range(current, min(current + size, (A.shape[0]) ** 2)):
+        row = k % A.shape[0]
+        column = k // A.shape[0]
+
+        sum = 0
+        for n in range(A.shape[1]):
+            sum += A[row][n] * A[column][n]
+
+        C[row][column] = sum
+
 
 
 def verify_solution():
