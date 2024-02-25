@@ -13,6 +13,7 @@ def max_cpu(A, B):
     C = np.zeros((1000, 1000))
     for i in range(A.shape[0]):
         for j in range(A.shape[1]):
+            # gets the max between the two matricies
             C[i, j] = max(A[i, j], B[i, j])
 
     return C
@@ -26,6 +27,8 @@ def max_numba(A, B):
      np.array
          element-wise maximum between A and B
      """
+    
+    # we use prange to run concurrently
     C = np.zeros((1000, 1000))
     for i in prange(A.shape[0]):
         for j in prange(A.shape[1]):
@@ -40,10 +43,21 @@ def max_gpu(A, B):
      np.array
          element-wise maximum between A and B
      """
+    
+    # sends the data to the gpu
+    A_d = cuda.to_device(A)
+    B_d = cuda.to_device(B)
+    C_d = cuda.device_array_like(A)
+
+    # sets the grid size to have a thread for each cell in the matrix
     threadsperblock = 1000
     blockspergrid = 1000
-    C = np.zeros((1000, 1000))
-    max_kernel[blockspergrid, threadsperblock](A, B, C)
+
+    # calculates the max using the kernel
+    max_kernel[blockspergrid, threadsperblock](A_d, B_d, C_d)
+
+    # copies the result back and return it
+    C = C_d.copy_to_host()
     return C
 
 
@@ -53,6 +67,8 @@ def max_kernel(A, B, C):
     i = cuda.threadIdx.x
     # Block id in a 1D grid
     j = cuda.blockIdx.x
+
+    # gets the max between the two matricies
     C[i, j] = max(A[i, j], B[i, j])
 
 
@@ -98,8 +114,3 @@ def max_comparison():
 if __name__ == '__main__':
     verify_solution()
     max_comparison()
-
-A = np.random.randint(0, 256, (1000, 1000))
-B = np.random.randint(0, 256, (1000, 1000))
-C = max_cpu(A, B)
-print(C)

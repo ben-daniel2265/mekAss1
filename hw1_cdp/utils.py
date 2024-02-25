@@ -104,10 +104,3 @@ def add_elementwise(list1, list2):
 def xavier_initialization(m, n):
     xavier = 1 / (m ** 0.5)
     return np.random.uniform(low=-xavier, high=xavier, size=(m, n))
-
-'''
-data = np.array([1,2,3,4,1,4,1,5,4,6,4,6])
-
-labels = np.array([1,2,3,4,1,4,1,5,4,6,4,6])
-
-print(create_batches(data, labels, 5))'''
